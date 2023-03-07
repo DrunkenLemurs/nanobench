@@ -2,10 +2,14 @@ cmake_minimum_required(VERSION 3.8)
 project(nanobench LANGUAGES CXX)
 
 # determine whether this is a standalone project or included by other projects
-set(NANOBENCH_STANDALONE_PROJECT OFF)
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    set(NANOBENCH_STANDALONE_PROJECT ON)
+if (NOT DEFINED CACHE{NANOBENCH_STANDALONE_PROJECT})
+    set(NANOBENCH_STANDALONE_PROJECT OFF)
+    if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+        set(NANOBENCH_STANDALONE_PROJECT ON)
+    endif()
 endif()
+
+include(GNUInstallDirs)
 
 if (NANOBENCH_STANDALONE_PROJECT)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # generate compile_commands.json
@@ -83,7 +87,6 @@ if (NANOBENCH_STANDALONE_PROJECT)
     target_sources_local(nb PUBLIC .clang-tidy)
 
 
-    include(GNUInstallDirs)
     set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/cmake)
     set(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
 
@@ -123,12 +126,12 @@ if (NANOBENCH_STANDALONE_PROJECT)
       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
       DESTINATION ${INSTALL_CONFIGDIR}
     )
-
-    # Install headers
-    install(FILES src/include/nanobench.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 else()
     add_library(nanobench STATIC ${PROJECT_SOURCE_DIR}/src/test/app/nanobench.cpp)
     add_library(nanobench::nanobench ALIAS nanobench)
     set_property(TARGET nanobench PROPERTY CXX_STANDARD 17)
     target_include_directories(nanobench PUBLIC ${PROJECT_SOURCE_DIR}/src/include)
 endif()
+
+# Install headers
+install(FILES src/include/nanobench.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
