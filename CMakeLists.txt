@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.18)
 project(nanobench LANGUAGES CXX)
 
 # determine whether this is a standalone project or included by other projects
@@ -89,11 +89,18 @@ if (NANOBENCH_STANDALONE_PROJECT)
 
     # Install library target
     add_library(nanobench STATIC ${PROJECT_SOURCE_DIR}/src/test/app/nanobench.cpp)
-    target_compile_features(nanobench PUBLIC cxx_std_11)
+    set_target_properties(nanobench PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     target_include_directories(nanobench
       PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
         $<INSTALL_INTERFACE:include>
+    )
+    target_compile_options(nanobench 
+      PUBLIC
+        $<$<CXX_COMPILER_ID:MSVC>:/EHsc /D_HAS_EXCEPTIONS=1>
+        $<$<CXX_COMPILER_ID:Clang>:-fexceptions>
+        $<$<CXX_COMPILER_ID:AppleClang>:-fexceptions>
+        $<$<CXX_COMPILER_ID:GNUC>:-fexceptions>
     )
     install(
       TARGETS nanobench
@@ -129,6 +136,13 @@ if (NANOBENCH_STANDALONE_PROJECT)
 else()
     add_library(nanobench STATIC ${PROJECT_SOURCE_DIR}/src/test/app/nanobench.cpp)
     add_library(nanobench::nanobench ALIAS nanobench)
-    set_property(TARGET nanobench PROPERTY CXX_STANDARD 17)
+    set_target_properties(nanobench PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     target_include_directories(nanobench PUBLIC ${PROJECT_SOURCE_DIR}/src/include)
+    target_compile_options(nanobench 
+      PUBLIC
+        $<$<CXX_COMPILER_ID:MSVC>:/EHsc /D_HAS_EXCEPTIONS=1>
+        $<$<CXX_COMPILER_ID:Clang>:-fexceptions>
+        $<$<CXX_COMPILER_ID:AppleClang>:-fexceptions>
+        $<$<CXX_COMPILER_ID:GNUC>:-fexceptions>
+    )
 endif()
